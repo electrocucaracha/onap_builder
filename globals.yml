@@ -1,0 +1,31 @@
+src_folder: /tmp/
+base_url_repo: https://git.onap.org/
+
+images:
+  - name: aai-resources
+    build_info:
+      url_repo: aai/resources.git
+      relative_path: aai-resources
+      version: 453700a7dda49c63bbe2032796ec6bd2c2299e2f
+      profile: docker
+  - name: aai-traversal
+    build_info:
+      url_repo: aai/traversal.git
+      relative_path: aai-traversal
+      version: 1ff72d0c1828a779581f285668480ac7b70b9d1c
+      profile: docker
+  - name: aai-search-data-service
+    build_info:
+      url_repo: aai/search-data-service.git
+      relative_path: search-data-service
+      version: 3c702a13da91564f65fbc2a002b7737325daaf56
+  - name: aai-data-router
+    build_info:
+      url_repo: aai/data-router.git
+      relative_path: data-router
+      version: 677dbc87455c77e9d3184519ddbd550c74cc41e8
+  - name: aai-model-loader
+    build_info:
+      url_repo: aai/model-loader.git
+      relative_path: model-loader
+      version: 26941bcd39541782b0ea2aa451e0b0982bd46b6a

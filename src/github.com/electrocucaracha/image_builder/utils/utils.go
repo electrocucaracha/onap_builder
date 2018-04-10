@@ -1,13 +1,13 @@
 package utils
 
 import (
-    "log"
-    "os"
+	"log"
+	"os"
 )
 
 func Check(err error) {
-    if err != nil {
-       log.Fatal(err)
-       os.Exit(1)
-    }
+	if err != nil {
+		log.Fatal(err)
+		os.Exit(1)
+	}
 }

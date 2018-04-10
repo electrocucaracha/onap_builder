@@ -44,7 +44,7 @@ func addCheckoutCmd(cmds []*cmd.Cmd, path string, version string) []*cmd.Cmd{
     return append(cmds, checkoutCmd)
 }
 
-func addMvnBuildCmd(cmds []*cmd.Cmd, path string, httpProxy string, httpsProxy string, profile string) []*cmd.Cmd{
+func addMvnBuildCmd(cmds []*cmd.Cmd, path string, profile string) []*cmd.Cmd{
     if _, err := os.Stat(path + "/pom.xml"); err == nil {
         mvnCmd := cmd.NewCmd("mvn").WithArgs("package", "docker:build", "-DskipTests=true", "-Dmaven.test.skip=true", "-Dmaven.javadoc.skip=true")
         if httpProxy != "" {
@@ -62,7 +62,7 @@ func addMvnBuildCmd(cmds []*cmd.Cmd, path string, httpProxy string, httpsProxy s
     return cmds
 }
 
-func addDockerBuildCmd(cmds []*cmd.Cmd, path string, httpProxy string, httpsProxy string, profile string) []*cmd.Cmd{
+func addDockerBuildCmd(cmds []*cmd.Cmd, path string, profile string) []*cmd.Cmd{
     if _, err := os.Stat(path + "/Dockerfile"); err == nil {
         dockerCmd := cmd.NewCmd("docker").WithArgs("build", "-f", "./Dockerfile")
         if httpProxy != "" {
@@ -81,27 +81,46 @@ func addDockerBuildCmd(cmds []*cmd.Cmd, path string, httpProxy string, httpsProx
     return cmds
 }
 
-func main() {
+var filename string
+var bufferSize int
+var numDispatchers int
+var httpProxy string
+var httpsProxy string
+
+func parseConfigFile() *ConfigurationFile{
+    yamlFile, err := ioutil.ReadFile(filename)
+    utils.Check(err)
+    config := ConfigurationFile{}
+    err = yaml.Unmarshal(yamlFile, &config)
+    utils.Check(err)
+    return &config
+}
+
+func parseArgs() {
     parser := argparse.NewParser("image_builder", "ONAP Docker image builder")
     configFile := parser.String("c", "config-file", &argparse.Options{Required: true, Help: "Configuration file"})
-    bufferSize := parser.Int("b", "buffer-size",  &argparse.Options{Default: 3, Help: "Commands buffer size"})
-    numDispatchers := parser.Int("n", "number-dispatchers",  &argparse.Options{Default: 3, Help: "Number of dispatchers"})
-    httpProxy := parser.String("p", "http-proxy", &argparse.Options{Required: false, Help: "URL HTTP proxy server"})
-    httpsProxy := parser.String("P", "https-proxy", &argparse.Options{Required: false, Help: "URL HTTPS proxy server"})
+    buffer := parser.Int("b", "buffer-size",  &argparse.Options{Default: 3, Help: "Commands buffer size"})
+    dispatchers := parser.Int("n", "number-dispatchers",  &argparse.Options{Default: 3, Help: "Number of dispatchers"})
+    proxy := parser.String("p", "http-proxy", &argparse.Options{Required: false, Help: "URL HTTP proxy server"})
+    secProxy := parser.String("P", "https-proxy", &argparse.Options{Required: false, Help: "URL HTTPS proxy server"})
     err := parser.Parse(os.Args)
     if err != nil {
        fmt.Print(parser.Usage(err))
        os.Exit(0)
     }
+    filename = *configFile
+    bufferSize = *buffer
+    numDispatchers = *dispatchers
+    httpProxy = *proxy
+    httpsProxy = *secProxy
+}
 
-    yamlFile, err := ioutil.ReadFile(*configFile)
-    utils.Check(err)
-    config := ConfigurationFile{}
-    err = yaml.Unmarshal(yamlFile, &config)
-    utils.Check(err)
+func main() {
+    parseArgs()
+    config := parseConfigFile()
 
-    cmdQueue := make(chan []*cmd.Cmd, *bufferSize)
-    for i := 0; i < *numDispatchers; i++ {
+    cmdQueue := make(chan []*cmd.Cmd, bufferSize)
+    for i := 0; i < numDispatchers; i++ {
         dispatcher := cmd.NewDispatcher(i, cmdQueue)
         defer dispatcher.Stop()
     }
@@ -112,8 +131,8 @@ func main() {
 
         cmds = addCloneCmd(cmds, config.BaseUrlRepo + image.BuildInfo.UrlRepo, path)
         cmds = addCheckoutCmd(cmds, path, image.BuildInfo.Version)
-        cmds = addMvnBuildCmd(cmds, path + image.BuildInfo.RelativePath, *httpProxy, *httpsProxy, image.BuildInfo.Profile)
-        cmds = addDockerBuildCmd(cmds, path + image.BuildInfo.RelativePath, *httpProxy, *httpsProxy, image.BuildInfo.Profile)
+        cmds = addMvnBuildCmd(cmds, path + image.BuildInfo.RelativePath, image.BuildInfo.Profile)
+        cmds = addDockerBuildCmd(cmds, path + image.BuildInfo.RelativePath, image.BuildInfo.Profile)
 
         go func(cmds []*cmd.Cmd) {
             cmdQueue <- cmds

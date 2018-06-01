@@ -3,9 +3,8 @@ package cmd
 import (
 	"os"
 
+	"github.com/electrocucaracha/onap_builder/internal/utils"
 	"github.com/kballard/go-shellquote"
-
-	"github.com/electrocucaracha/image_builder/utils"
 )
 
 type Cmd struct {

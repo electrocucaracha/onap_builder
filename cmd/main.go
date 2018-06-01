@@ -4,12 +4,11 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/akamensky/argparse"
-	"gopkg.in/yaml.v2"
 	"io/ioutil"
 
-	"github.com/electrocucaracha/image_builder/cmd"
-	"github.com/electrocucaracha/image_builder/utils"
+	"github.com/akamensky/argparse"
+	"github.com/electrocucaracha/onap_builder/internal/cmd"
+	"github.com/electrocucaracha/onap_builder/internal/utils"
 )
 
 type BuildInfo struct {

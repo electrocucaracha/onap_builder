@@ -1,9 +1,11 @@
 package cmd
 
 import (
+	"errors"
 	"os"
 
 	"github.com/kballard/go-shellquote"
+	pkgerrors "github.com/pkg/errors"
 )
 
 // Cmd is a representation of a bash instruction
@@ -18,19 +20,18 @@ type Cmd struct {
 
 // NewCmd creates a new command instance from a string bash instruction
 func NewCmd(bashCmd string) (*Cmd, error) {
+	if bashCmd == "" {
+		return nil, errors.New("Invalid Argument")
+	}
 	params, err := shellquote.Split(bashCmd)
 	if err != nil {
-		return nil, err
+		return nil, pkgerrors.Wrap(err, "Split bash arguments")
 	}
 
 	name := params[0]
-	args := make([]string, len(params)-1)
-	for _, arg := range params[1:] {
-		args = append(args, arg)
-	}
 	cmd := Cmd{
 		Name:   name,
-		Args:   args,
+		Args:   params[1:],
 		Stdin:  os.Stdin,
 		Stdout: os.Stdout,
 		Stderr: os.Stderr,
@@ -40,7 +41,9 @@ func NewCmd(bashCmd string) (*Cmd, error) {
 
 // WithArg adds a new argument to the existing list of arguments
 func (cmd *Cmd) WithArg(arg string) *Cmd {
-	cmd.Args = append(cmd.Args, arg)
+	if arg != "" {
+		cmd.Args = append(cmd.Args, arg)
+	}
 	return cmd
 }
 

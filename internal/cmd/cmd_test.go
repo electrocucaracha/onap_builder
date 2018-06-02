@@ -1,31 +1,75 @@
 package cmd
 
-import "testing"
+import (
+	"reflect"
+	"testing"
+)
 
-func TestCmd(t *testing.T) {
-	scenarios := []struct {
-		name     string
-		input    string
-		expected *Cmd
-	}{
-		{"standard", "echo Hello World", &Cmd{Name: "echo", Args: []string{"Hello", "World"}}},
+func TestNewCmd(t *testing.T) {
+	fn := func(t *testing.T) {
+		input := "echo Hello World"
+		expected := Cmd{
+			Name: "echo",
+			Args: []string{"Hello", "World"},
+		}
+
+		result, err := NewCmd(input)
+		if err != nil {
+			t.Fatalf("NewCmd returned an error (%s)", err)
+		}
+		if expected.Name != result.Name {
+			t.Fatalf("NewCmd returned name %s, expected %s", result.Name, expected.Name)
+		}
+		if !reflect.DeepEqual(expected.Args, result.Args) {
+			t.Fatalf("NewCmd returned args %v, expected %v", result.Args, expected.Args)
+		}
+	}
+	t.Run("Standard", fn)
+
+	fn = func(t *testing.T) {
+		_, err := NewCmd("")
+		if err == nil {
+			t.Fatalf("NewCmd didn't returned an error")
+		}
+	}
+	t.Run("Empty", fn)
+}
+
+func TestWithArg(t *testing.T) {
+	input := "echo Hello"
+	result, err := NewCmd(input)
+	if err != nil {
+		t.Fatalf("NewCmd returned an error (%s)", err)
 	}
 
-	for _, scenario := range scenarios {
-		fn := func(t *testing.T) {
-			expected, err := NewCmd(scenario.input)
-			if err != nil {
-				t.Error()
-			}
-			if expected.Name != scenario.expected.Name {
-				t.Errorf("The expected name(%q) doesn't match with what it was got(%q)", expected.Name, scenario.expected.Name)
-			}
-		}
-		t.Run(scenario.name, fn)
+	result.WithArg("")
+	expected := []string{"Hello"}
+	if !reflect.DeepEqual(expected, result.Args) {
+		t.Fatalf("WithArg returned args %v, expected %v", result.Args, expected)
+	}
+
+	expected = []string{"Hello", "World"}
+	result.WithArg("World")
+	if !reflect.DeepEqual(expected, result.Args) {
+		t.Fatalf("WithArg returned args %v, expected %v", result.Args, expected)
 	}
 }
 
-func BenchmarkCmd(b *testing.B) {
+func TestWithArgs(t *testing.T) {
+	input := "echo"
+	result, err := NewCmd(input)
+	if err != nil {
+		t.Fatalf("NewCmd returned an error (%s)", err)
+	}
+
+	expected := []string{"Hello", "World"}
+	result.WithArgs("Hello", "World")
+	if !reflect.DeepEqual(expected, result.Args) {
+		t.Fatalf("WithArg returned args %v, expected %v", result.Args, expected)
+	}
+}
+
+func BenchmarkNewCmd(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		NewCmd("echo Hello World")
 	}

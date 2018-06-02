@@ -3,4 +3,4 @@ pkg/
 *.swp
 vendor/
 .DS_Store
-onap_builder
+.vscode/

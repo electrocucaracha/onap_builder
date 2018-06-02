@@ -6,6 +6,8 @@ import (
 
 	"io/ioutil"
 
+	"gopkg.in/yaml.v2"
+
 	"github.com/akamensky/argparse"
 	"github.com/electrocucaracha/onap_builder/internal/cmd"
 	"github.com/electrocucaracha/onap_builder/internal/utils"
@@ -31,21 +33,24 @@ type ConfigurationFile struct {
 
 func addCloneCmd(cmds []*cmd.Cmd, repo string, path string) []*cmd.Cmd {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
-		cloneCmd := cmd.NewCmd("git").WithArgs("clone", repo, path)
+		cloneCmd, err := cmd.NewCmd("git clone " + repo + " " + path)
+		utils.Check(err)
 		cmds = append(cmds, cloneCmd)
 	}
 	return cmds
 }
 
 func addCheckoutCmd(cmds []*cmd.Cmd, path string, version string) []*cmd.Cmd {
-	checkoutCmd := cmd.NewCmd("git").WithArgs("checkout", version)
+	checkoutCmd, err := cmd.NewCmd("git checkout " + version)
+	utils.Check(err)
 	checkoutCmd.Dir = path
 	return append(cmds, checkoutCmd)
 }
 
 func addMvnBuildCmd(cmds []*cmd.Cmd, path string, profile string) []*cmd.Cmd {
 	if _, err := os.Stat(path + "/pom.xml"); err == nil {
-		mvnCmd := cmd.NewCmd("mvn").WithArgs("package", "docker:build", "-DskipTests=true", "-Dmaven.test.skip=true", "-Dmaven.javadoc.skip=true")
+		mvnCmd, err := cmd.NewCmd("mvn package docker:build -DskipTests=true -Dmaven.test.skip=true -Dmaven.javadoc.skip=true")
+		utils.Check(err)
 		if httpProxy != "" {
 			mvnCmd.WithArg("-Ddocker.buildArg.http_proxy=" + httpProxy)
 		}
@@ -63,7 +68,8 @@ func addMvnBuildCmd(cmds []*cmd.Cmd, path string, profile string) []*cmd.Cmd {
 
 func addDockerBuildCmd(cmds []*cmd.Cmd, path string, profile string) []*cmd.Cmd {
 	if _, err := os.Stat(path + "/Dockerfile"); err == nil {
-		dockerCmd := cmd.NewCmd("docker").WithArgs("build", "-f", "./Dockerfile")
+		dockerCmd, err := cmd.NewCmd("docker build -f ./Dockerfile")
+		utils.Check(err)
 		if httpProxy != "" {
 			dockerCmd.WithArg("--build-arg http_proxy=" + httpProxy)
 		}

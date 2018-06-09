@@ -20,16 +20,11 @@ control of the creation process.
 
 ## Installation
 
-    $ cd onap_builder
-    $ export GOPATH="$(pwd)"
-    $ cd src/github.com/electrocucaracha/image_builder
-    $ dep ensure
-    $ go install
-    $ export PATH=$PATH:$(go env GOPATH)/bin
+    $ go get github.com/electrocucaracha/onap_builder
 
 ## Execution
 
-    $ image_builder --config-file $GOPATH/globals.yml
+    $ image_builder --config-file configs/globals.yml
 
 ## Contributing
 

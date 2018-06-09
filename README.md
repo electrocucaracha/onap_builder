@@ -1,5 +1,9 @@
 # ONAP Docker Image Builder
 
+[![Go Report Card](https://goreportcard.com/badge/github.com/electrocucaracha/onap_builder
+)](https://goreportcard.com/report/github.com/electrocucaracha/onap_builder)
+[![GoDoc](https://godoc.org/github.com/electrocucaracha/onap_builder?status.svg)](https://godoc.org/github.com/electrocucaracha/onap_builder)
+
 This golang project allows to generate ONAP Docker images from source code. Its 
 main goal is centralize the process to generate images as well as having better
 control of the creation process.
